@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	exif "github.com/dsoprea/go-exif/v3"
 	// "github.com/charmbracelet/lipgloss"
 )
 
@@ -77,7 +78,28 @@ func (m model) View() string {
 }
 
 func grabExifData(image string) (string, error) {
+	data, err := os.ReadFile(image)
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
 
+	exifData, err := exif.SearchAndExtractExif(data)
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+
+	tags, med, err := exif.GetFlatExifData(exifData, nil)
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+
+	fmt.Println(tags)
+	fmt.Println(med)
+
+	return "", nil
 }
 
 func getImagesData(imagesPath string) ([]renameEntry, error) {
@@ -97,6 +119,8 @@ func getImagesData(imagesPath string) ([]renameEntry, error) {
 				renameEntry{filename: file.Name(), date: "unknown", result: "will calculate"})
 		}
 	}
+
+	grabExifData(path.Join(imagesPath, entries[0].filename))
 
 	return entries, nil
 }
